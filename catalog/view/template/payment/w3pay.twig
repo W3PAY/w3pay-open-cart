@@ -1,0 +1,92 @@
+<fieldset>
+  <legend>{{ text_title }}</legend>
+  <p><b>{{ text_description }}</b></p>
+  <img src="{{ img_url }}">
+  <form class="form-w3pay">
+    <div class="form-message"></div>
+    <div class="d-inline-block pt-2 pd-2 w-100 text-end">
+      <button type="submit" class="btn btn-primary button-confirm-w3pay">{{ button_confirm }}</button>
+    </div>
+  </form>
+</fieldset>
+<script type="text/javascript">
+
+  function confirmW3payMethod($this, sendurl){
+    $this.querySelector(".form-message").innerHTML = "";
+    var formData = new FormData();
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", sendurl, true);
+    xhr.onreadystatechange = function() {//Вызывает функцию при смене состояния.
+      if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+        var res = JSON.parse(xhr.response);
+        console.log(res);
+
+        if(res.error==1){
+          $this.querySelector(".form-message").innerHTML = '<div class="alert alert-danger alert-dismissible">'+res.data+'</div>';
+        }
+        if(res.error==0){
+          window.location.href = res.redirect;
+        }
+      }
+    }
+    xhr.send(formData);
+  }
+
+  // click Event
+  document.addEventListener('click', function OnClick(event) {
+    var $this = event.target;
+
+    ActionNameClass = 'button-confirm-w3pay';
+    if ($this.classList.contains(ActionNameClass) || $this.closest('.'+ActionNameClass)) {
+      event.preventDefault();
+      confirmW3payMethod($this.closest('.form-w3pay'), '{{ confirm_url }}');
+      return false;
+    }
+
+  });
+  /*
+$('#form-credit-card').on('submit', function (e) {
+    e.preventDefault();
+
+    var element = this;
+
+    $.ajax({
+        url: '/index.php?route=extension/w3pay/payment/w3pay|confirm&language={{ language }}',
+        type: 'post',
+        data: $('#form-credit-card').serialize(),
+        dataType: 'json',
+        contentType: 'application/x-www-form-urlencoded',
+        cache: false,
+        processData: false,
+        beforeSend: function () {
+            $('#button-confirm').prop('disabled', true).addClass('loading');
+        },
+        complete: function () {
+            $('#button-confirm').prop('disabled', false).removeClass('loading');
+        },
+        success: function (json) {
+            $('.alert-dismissible').remove();
+            $('#form-credit-card').find('.is-invalid').removeClass('is-invalid');
+            $('#form-credit-card').find('.invalid-feedback').removeClass('d-block');
+
+            if (json['redirect']) {
+                location = json['redirect'];
+            }
+
+            if (json['error']) {
+                if (json['error']['warning']) {
+                    $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error']['warning'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+                }
+
+                for (key in json['error']) {
+                    $('#input-' + key.replaceAll('_', '-')).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+                    $('#error-' + key.replaceAll('_', '-')).html(json['error'][key]).addClass('d-block');
+                }
+            }
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+        }
+    });
+});
+*/</script>

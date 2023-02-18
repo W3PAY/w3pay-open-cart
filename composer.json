@@ -1,0 +1,17 @@
+{
+    "name": "w3pay/w3pay-open-cart",
+    "description": "w3pay-open-cart - Accepting cryptocurrency payments in OpenCart",
+    "type": "library",
+	"license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "W3PAY",
+            "email": "info@w3pay.dev",
+            "homepage": "https://github.com/w3pay-open-cart"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+		"php": ">=7.1"
+	}
+}
