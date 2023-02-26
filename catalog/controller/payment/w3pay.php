@@ -98,16 +98,33 @@ class W3pay extends \Opencart\System\Engine\Controller {
         // Set prices to receive tokens
         $orderId = $PaymentData['PaymentData']['orderId']; // Please enter your order number
         $payAmountInReceiveToken = $PaymentData['PaymentData']['payAmountInReceiveToken']; // Please enter a price for the order
-        $OrderData = [
-            'orderId' => $orderId,
-            'payAmounts' => [
-                ['chainId' => 97, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Binance Smart Chain Mainnet - Testnet (BEP20)
-                ['chainId' => 56, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Binance Smart Chain Mainnet (BEP20)
-                ['chainId' => 137, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Polygon (MATIC)
-                ['chainId' => 43114, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Avalanche C-Chain
-                ['chainId' => 250, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Fantom Opera
-            ],
-        ];
+
+        $multicurrencyIsActive = \wW3pay::instance()->multicurrencyIsActive();
+        if(empty($multicurrencyIsActive['error'])){
+            //If multicurrency is enabled in the settings, then we can set the price in fiat currency
+            $OrderData = [
+                'orderId' => $orderId,
+                'fiatData' => ['currency' => $PaymentData['PaymentData']['currency'], 'amount' => $payAmountInReceiveToken]
+            ];
+        } else {
+            if($PaymentData['PaymentData']['currency']!='USD'){
+                echo 'Only USD currency or enable multiplicity in w3pay settings.';
+                exit;
+            }
+            // Set the price in tokens to receive
+            $payAmountInReceiveToken = 1; // Please enter a price for the order
+            $OrderData = [
+                'orderId' => $orderId,
+                'payAmounts' => [
+                    ['chainId' => 97, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Binance Smart Chain Mainnet - Testnet (BEP20)
+                    ['chainId' => 56, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Binance Smart Chain Mainnet (BEP20)
+                    ['chainId' => 137, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Polygon (MATIC)
+                    ['chainId' => 43114, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Avalanche C-Chain
+                    ['chainId' => 250, 'payAmountInReceiveToken' => $payAmountInReceiveToken], // Fantom Opera
+                ],
+            ];
+        }
+
         $showPayment = \wW3pay::instance()->showPayment([
             'checkPaymentPageUrl'=>$PaymentData['PaymentData']['checkPaymentPageUrl'],
             'OrderData' => $OrderData,
@@ -306,9 +323,10 @@ class W3pay extends \Opencart\System\Engine\Controller {
         if(empty($order_data['currency_code'])){
             return ['error' => 1, 'data' => 'Order currency is empty'];
         }
-        if($order_data['currency_code']!='USD'){
+        /*if($order_data['currency_code']!='USD'){
             return ['error' => 1, 'data' => 'Select USD currency'];
-        }
+        }*/
+        $currency = $order_data['currency_code'];
         if(empty($order_data['total'])){
             return ['error' => 1, 'data' => 'Order total is empty'];
         }
@@ -333,6 +351,7 @@ class W3pay extends \Opencart\System\Engine\Controller {
             'wW3payPath' => $wW3payPath,
             'pay_url' => $pay_url,
             'checkPaymentPageUrl' => $checkPaymentPageUrl,
+            'currency' => $currency,
         ];
         return ['error' => 0, 'data' => 'Success', 'PaymentData'=>$PaymentData];
     }
